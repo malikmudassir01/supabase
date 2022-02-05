@@ -91,7 +91,7 @@
                 <h5>Import Preview</h5>
                 <q-space/>
                 <q-btn class=" no-shadow" color="blue-12" label="Import data" />
-                <q-btn class="q-ml-xl no-shadow" color="blue-12" label="Display Orders" />
+                <q-btn class="q-ml-xl no-shadow" color="blue-12" to="/display" label="Display Orders" />
               </template>
             </q-table>
 
@@ -109,7 +109,7 @@
                 <h5>Import Preview</h5>
                 <q-space/>
                 <q-btn class=" no-shadow" color="blue-12" label="Import data" />
-                <q-btn class="q-ml-xl no-shadow" color="blue-12" label="Display Orders" />
+                <q-btn class="q-ml-xl no-shadow" color="blue-12" to="/display" label="Display Orders" />
               </template>
             </q-table>
           </div>
