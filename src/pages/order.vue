@@ -1,20 +1,19 @@
 <template>
-  <q-page>
-    <div class="row">
-      <div class="col-3 q-pl-sm">
+  <q-page class="background ">
+    <h4 class=" no-margin q-pa-xl text-white text-center font-change">Order Data</h4>
+
         <div class="q-my-lg">
           <q-select
             v-model="selected"
             :options="csvfiles"
             label="File Type"
             options-dense
-            outlined
             dense
-            class="q-pr-sm"
+            class="q-pa-xl"
           />
 
           <div v-if="selected" class="text-caption">
-            <div v-if="selected.value == 'ordhdr'">
+            <div v-if="selected.value == 'ordhdr'" class="q-px-xl">
               <b>Order Headers </b><br />
               <vue-csv-import
                 v-model="csvfile"
@@ -49,8 +48,8 @@
               </vue-csv-import>
             </div>
 
-            <div v-if="selected.value == 'orditm'">
-              <b>Order Lines</b><br />
+            <div v-if="selected.value == 'orditm'" class="q-px-xl">
+              <b >Order Lines</b><br />
               <vue-csv-import
                 v-model="csvfile"
                 :fields="{
@@ -67,35 +66,19 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="col-9 q-pr-sm q-py-md">
-        <q-card>
-          <q-form class="q-pa-sm" @submit.prevent="onSubmit">
-            <div class="row">
-              <div class="col-3">
-                <q-select
+    <div class="q-px-xl">
+            <q-select
                   v-model="company"
                   label="Company"
                   options-dense
                   :options="companies"
-                  outlined
                   dense
                 />
-              </div>
-              <q-space />
-              <div class="col-4 text-right">
-                <q-btn
-                  v-if="csvfile && company"
-                  label="Confirm Import Data"
-                  color="primary"
-                  type="submit"
-                />
-              </div>
-            </div>
-          </q-form>
+      <q-space />
+    </div>
           <div v-if="csvfile" class="q-mx-sm q-pb-xl">
-            <q-table
+             <q-table
+              class="q-ma-xl"
               v-if="selected.value == 'ordhdr'"
               flat
               title="Import Preview"
@@ -103,62 +86,71 @@
               row-key="ord_id"
               :pagination="{ rowsPerPage: 25 }"
               :rows-per-page-options="[25, 50, 100]"
-            />
+            >
+              <template v-slot:top>
+                <h5>Import Preview</h5>
+                <q-space/>
+                <q-btn class=" no-shadow" color="blue-12" label="Import data" />
+                <q-btn class="q-ml-xl no-shadow" color="blue-12" label="Display Orders" />
+              </template>
+            </q-table>
 
             <q-table
               v-if="selected.value == 'orditm'"
+              class="q-ma-xl"
               flat
               title="Import Preview"
               :rows="csvfile"
               row-key="ord_id"
               :pagination="{ rowsPerPage: 25 }"
               :rows-per-page-options="[25, 50, 100]"
-            />
+            >
+              <template v-slot:top>
+                <h5>Import Preview</h5>
+                <q-space/>
+                <q-btn class=" no-shadow" color="blue-12" label="Import data" />
+                <q-btn class="q-ml-xl no-shadow" color="blue-12" label="Display Orders" />
+              </template>
+            </q-table>
           </div>
-        </q-card>
-      </div>
-    </div>
+
+
   </q-page>
 </template>
 
 <script>
 import useApi from "src/composables/UseApi";
 import useNotify from "src/composables/UseNotify";
+import {
+  VueCsvToggleHeaders,
+  VueCsvMap,
+  VueCsvInput,
+  VueCsvErrors,
+  VueCsvImport,
+} from "vue-csv-import";
+
 import { defineComponent, ref, onMounted, computed } from "vue";
 const { post, getById, update, list } = useApi();
-const { notifyError, notifySuccess } = useNotify();
 
 export default defineComponent({
   name: "order",
 
-  components: {},
+  components: {
+    VueCsvToggleHeaders,
+    VueCsvMap,
+    VueCsvInput,
+    VueCsvErrors,
+    VueCsvImport,
+  },
 
   setup() {
-    let allOrders = ref([]);
-    onMounted(() => {
-      getList();
-    });
-    const getList = async () => {
-      try {
-        allOrders = await list("ordhdr");
-        console.log(allOrders);
-      } catch (error) {
-        notifyError(error.message);
-      }
-    };
-    const onSubmit = () => {
-      // sample test only to import ordhdr
-      this.csvfile.forEach(async (row) => {
-        console.log("Row:", `${row.ord_id} - ${row.ord_num}`);
-      });
-    };
-    return {
-      list: allOrders,
-      onSubmit,
-      company: ref(null),
-      selected: ref(null),
-      csvfile: ref(null),
-      csvfiles: [
+    const { notifyError, notifySuccess } = useNotify();
+
+    const allOrders = ref([]),
+      company = ref(null),
+      selected = ref(null),
+      csvfile = ref(null),
+      csvfiles = [
         {
           value: "ordhdr",
           label: "Order Header",
@@ -168,7 +160,33 @@ export default defineComponent({
           label: "Order Item",
         },
       ],
-      companies: ["ABC"],
+      companies = ["ABC"];
+    onMounted(() => {
+      getList();
+    });
+    const getList = async () => {
+      try {
+        allOrders.value = await list("ordhdr");
+        console.log("all", allOrders.value);
+      } catch (error) {
+        notifyError(error.message);
+      }
+    };
+    const onSubmit = () => {
+      //   console.log("csv", csvfile.value);
+      // sample test only to import ordhdr
+      csvfile.value.forEach(async (row) => {
+        console.log("Row:", `${row.ord_id} - ${row.ord_num}`);
+      });
+    };
+    return {
+      allOrders,
+      onSubmit,
+      company,
+      selected,
+      csvfile,
+      csvfiles,
+      companies,
     };
   },
 });
@@ -177,5 +195,14 @@ export default defineComponent({
 <style scoped>
 .card-height {
   height: 150px;
+}
+.background{
+  background: #005AA7;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFDE4, #005AA7);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFDE4, #005AA7); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}
+.font-change{
+  font-family: cursive;
 }
 </style>
