@@ -1,5 +1,5 @@
 import { useQuasar } from 'quasar'
-export default function useNotify () {
+export default function useNotify() {
   const $q = useQuasar()
 
   const notifySuccess = (message) => {
@@ -16,8 +16,20 @@ export default function useNotify () {
     })
   }
 
+  const showLoader = () => {
+    $q.loading.show({
+      backgroundColor: 'dark'
+    })
+  }
+
+  const hideLoader = () => {
+    $q.loading.hide()
+
+  }
   return {
     notifySuccess,
-    notifyError
+    notifyError,
+    showLoader,
+    hideLoader
   }
 }
