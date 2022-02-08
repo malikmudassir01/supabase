@@ -12,11 +12,12 @@
           label="Companies"
           options-dense
           dense
-          class="q-pa-xl"
+          class="q-px-xl"
         />
       </div>
       <div class="q-px-xl">
-        <q-input v-model="enddate" mask="date" :rules="['date']">
+        <q-badge color="blue-4">Start Date : </q-badge>
+        <q-input v-model="startdate"  >
           <template v-slot:append>
             <q-icon name="event" class="cursor-pointer" round color="primary">
               <q-popup-proxy
@@ -25,7 +26,7 @@
                 transition-show="scale"
                 transition-hide="scale"
               >
-                <q-date v-model="enddate">
+                <q-date v-model="startdate" mask="DD-MM-YYYY">
                   <div class="row items-center justify-end">
                     <q-btn v-close-popup label="Close" color="primary" flat />
                   </div>
@@ -34,7 +35,27 @@
             </q-icon>
           </template>
         </q-input>
-        <div class="flex flex-center">
+        <q-badge color="blue-4" class="q-my-md">End Date : </q-badge>
+          <q-input v-model="enddate" >
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer" round color="primary">
+                <q-popup-proxy
+                  ref="qDateProxy"
+                  cover
+                  transition-show="scale"
+                  transition-hide="scale"
+                >
+                  <q-date v-model="enddate" mask="DD-MM-YYYY">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+
+          <div class="flex flex-center">
           <q-btn class="q-ma-lg text-white" label="Submit" type="submit"/>
         </div>
       </div>
@@ -67,14 +88,16 @@
                 color="blue"
                 round
                 dense
-                @click="comment=true"
+                @click="checkcomment(props.cols[0].value)"
                 icon="chat_bubble_outline"
               />
             </q-td>
+
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
-              {{ col.value }}
+              {{ (col.value) }}
             </q-td>
           </q-tr>
+
           <q-dialog v-model="comment">
             <q-card class="q-pa-lg">
               <q-card-section>
@@ -86,7 +109,7 @@
               </q-card-section>
 
               <q-card-actions align="right">
-                <q-btn flat label="OK" color="primary" v-close-popup />
+                <q-btn flat label="OK" color="primary" @click="updateRow" v-close-popup />
               </q-card-actions>
             </q-card>
           </q-dialog>
@@ -113,22 +136,40 @@ export default {
     const companies = ref(["abc"]),
       datecheck=ref(false),
       selected = ref(""),
-      enddate=ref(moment().format("YYYY/MM/DD")),
-      startdate = ref(moment(enddate.value, "YYYY/MM/DD").subtract(7, 'days').format("YYYY/MM/DD")),
+      enddate=ref(moment().format('DD-MM-YYYY')),
+      startdate = ref(moment().subtract(7,'days').format('DD-MM-YYYY')),
       display = ref([]),
       comment =ref(false),
-      commentValue =ref("");
+      commentValue =ref(""),
+      order_id=ref(null);
 
     const datechecker =async () => {
       try {
         datecheck.value=true;
         showLoader();
-        display.value = await getByDate('ordhdr',startdate.value,enddate.value);
+        display.value = await getByDate('ordhdr',startdate.value,enddate.value,selected.value);
+        console.log(display.value)
         hideLoader();
       } catch (error) {
         notifyError(error.message);
       }
     };
+
+const checkcomment=(value)=>{
+  comment.value=true;
+  order_id.value=value;
+}
+
+    const updateRow = async () => {
+      let res = await update("ordhdr", {
+        comments: { comment : commentValue.value, created: moment().format("DD-MM-YYYY") } ,
+        ord_id: order_id.value,
+      });
+      if (res) notifySuccess("Updated Successfully");
+      else notifyError("Error in Updating");
+    };
+
+
     return {
       companies,
       selected,
@@ -138,7 +179,11 @@ export default {
       commentValue,
       enddate,
       datecheck,
-      datechecker
+      datechecker,
+      updateRow,
+      order_id,
+      checkcomment,
+
 
 
     };

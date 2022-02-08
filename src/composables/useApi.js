@@ -87,7 +87,7 @@ export default function useApi() {
     return { success: success }
   }
 
-  const getByDate = async (table = 'ordhdr', startDate, endDate, company = null) => {
+  const getByDate = async (table = 'ordhdr', startDate, endDate, company) => {
     if (!startDate) {
       startDate = moment('12/4/2021', "DD-MM-YYYY").subtract(0, 'days').format("DD-MM-YYYY");
     }
@@ -95,7 +95,7 @@ export default function useApi() {
       endDate = moment().format("DD-MM-YYYY");
     let query = supabase
       .from(table)
-      .select('ord_id, ord_num, ord_createAt, ord_amtTotal')
+      .select('ord_id, ord_num, ord_createAt, ord_amtTotal, comments')
 
     if (company) { query = query.eq('company', company) }
     if (startDate) { query = query.gte('ord_createAt', startDate.toString()) }
@@ -104,6 +104,10 @@ export default function useApi() {
     const { data, error } = await query;
 
     if (error) throw error
+    data.forEach(e=>{
+      if(e.comments!=null)
+        e.comments=e.comments.comment;
+    })
     return data
   }
 
