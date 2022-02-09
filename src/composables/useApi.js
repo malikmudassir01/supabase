@@ -15,11 +15,14 @@ export default function useApi() {
   const getById = async (table, id) => {
     const { data, error } = await supabase
       .from(table)
-      .select('*')
+      .select(`* ,
+      orditm:orditm ( * ),
+      ordtrl:ordtrl ( ord_id)`)
       .eq('ord_id', id)
     if (error) throw error
     return data[0]
   }
+
 
   const post = async (table, form) => {
     const { data, error } = await supabase
@@ -96,7 +99,6 @@ export default function useApi() {
     let query = supabase
       .from(table)
       .select('ord_id, ord_num, ord_createAt, ord_amtTotal, comments')
-
     if (company) { query = query.eq('company', company) }
     if (startDate) { query = query.gte('ord_createAt', startDate.toString()) }
     if (endDate) { query = query.lt('ord_createAt', endDate.toString()) }

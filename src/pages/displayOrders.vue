@@ -78,6 +78,9 @@
             <q-th v-for="col in props.cols" :key="col.name" :props="props">
               {{ col.label }}
             </q-th>
+            <q-th>
+               <body>Details</body>
+            </q-th>
           </q-tr>
         </template>
 
@@ -96,7 +99,32 @@
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
               {{ (col.value) }}
             </q-td>
+            <q-td auto-width>
+              <q-btn
+                color="blue-6"
+                @click="seeDetails(props.cols[0].value)"
+               label="See Details"
+
+              />
+            </q-td>
           </q-tr>
+
+          <q-dialog v-model="checkDetails">
+            <q-card class="q-pa-lg">
+              <h6 class="font-change">Details are </h6>
+              <q-card-section class="text-grey-6">
+               <body>order ID is : {{details.ord_id}}</body>
+                <body>order name is : {{details.ord_name}}</body>
+                <body>order created on : {{details.ord_createAt}}</body>
+                <body>order updated on : {{details.ord_updateAt}}</body>
+              </q-card-section>
+
+              <q-card-actions align="right">
+                <q-btn flat label="OK" color="primary"  v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+
 
           <q-dialog v-model="comment">
             <q-card class="q-pa-lg">
@@ -141,7 +169,9 @@ export default {
       display = ref([]),
       comment =ref(false),
       commentValue =ref(""),
-      order_id=ref(null);
+      order_id=ref(null),
+      details=ref(null),
+      checkDetails=ref(false);
 
     const datechecker =async () => {
       try {
@@ -158,6 +188,19 @@ export default {
 const checkcomment=(value)=>{
   comment.value=true;
   order_id.value=value;
+}
+
+const seeDetails=async (value)=>{
+  try {
+    showLoader();
+    details.value = await getById('ordhdr', value);
+    hideLoader();
+    checkDetails.value=true;
+    console.log(details.value);
+  }
+  catch (error) {
+    notifyError(error.message);
+  }
 }
 
     const updateRow = async () => {
@@ -183,7 +226,9 @@ const checkcomment=(value)=>{
       updateRow,
       order_id,
       checkcomment,
-
+      seeDetails,
+      details,
+      checkDetails
 
 
     };
